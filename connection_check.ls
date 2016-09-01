@@ -16,10 +16,8 @@ check-http = (parsed-url) ->
     fetch(parsed-url.href, { timeout: 10000 }).then (response) ->
         report parsed-url.href, response.status
     .catch (err) ->
-        if err.type == \request-timeout
-            report parsed-url.href, \t.o
-        else
-            report parsed-url.href, \err
+        | err.type == \request-timeout => report parsed-url.href, \t.o
+        | otherwise => report parsed-url.href, \err
 
 
 check-tcp = (parsed-url) ->
@@ -50,25 +48,32 @@ check-tcp = (parsed-url) ->
 
 validate-url = (input) ->
     parsed-url = url.parse input
-    is-http = parsed-url.slashes && (parsed-url.protocol == 'http:' || parsed-url.protocol == 'https:')
+    is-http = parsed-url.slashes &&
+        (parsed-url.protocol == 'http:' ||
+         parsed-url.protocol == 'https:')
     [parsed-url, is-http]
 
 
 split-host-port = (parsed-url) ->
     # possibly has this format protocol://hostname:port/pathname
-    if parsed-url.slashes
-        { host: parsed-url.hostname, port: parsed-url.port } # if port is not specified then it's an error since http URLs should not passed here
-    else if parsed-url.protocol
-        { host: parsed-url.protocol.substring(0, parsed-url.protocol.length - 1), port: parsed-url.hostname } # if slashes is null but protocol is exist
-    else
-        { host: parsed-url.pathname, port: null } # this is an error
+    # if port is not specified then it's an error
+    # since http URLs should not passed here.
+    | parsed-url.slashes =>
+        { host: parsed-url.hostname, port: parsed-url.port }
+
+    # if slashes is null but protocol is exist
+    | parsed-url.protocol =>
+        { host: parsed-url.protocol.substring(0, parsed-url.protocol.length - 1),
+          port: parsed-url.hostname }
+
+    # this is an error
+    | otherwise => { host: parsed-url.pathname, port: null }
 
 
 input-file = process.argv.2 || './test.list'
 
 fs.read-file-sync input-file, 'utf8' |> split '\n' |> compact |> each (line) ->
     [u, is-http] = validate-url line
-    if is-http
-        check-http u
-    else
-        check-tcp u
+    switch
+    | is-http => check-http u
+    | otherwise => check-tcp u
