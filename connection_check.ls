@@ -58,13 +58,13 @@ split-host-port = (parsed-url) ->
     # possibly has this format protocol://hostname:port/pathname
     # if port is not specified then it's an error
     # since http URLs should not passed here.
-    | parsed-url.slashes =>
-        { host: parsed-url.hostname, port: parsed-url.port }
+    | parsed-url.slashes => { host: parsed-url.hostname, port: parsed-url.port }
 
     # if slashes is null but protocol is exist
-    | parsed-url.protocol =>
-        { host: parsed-url.protocol.substring(0, parsed-url.protocol.length - 1),
-          port: parsed-url.hostname }
+    | parsed-url.protocol => {
+        host: parsed-url.protocol.substring(0, parsed-url.protocol.length - 1),
+        port: parsed-url.hostname
+    }
 
     # this is an error
     | otherwise => { host: parsed-url.pathname, port: null }
