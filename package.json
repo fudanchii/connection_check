@@ -1,6 +1,7 @@
 {
   "name": "connection_checker",
   "dependencies": {
+    "async": "^2.0.1",
     "livescript": "^1.5.0",
     "node-fetch": "^1.6.0",
     "prelude-ls": "^1.1.2"
